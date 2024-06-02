@@ -1,90 +1,97 @@
-function Razia(tanggal, data) {
-  const ruteGanjilGenap = ["Gajah Mada", "Hayam Wuruk", "Sisingamangaraja", "Panglima Polim", "Fatmawati", "Tomang Raya"];
+package main
 
-  
-  const tanggalGanjil = tanggal % 2 !== 0;
-  
+import (
+	"fmt"
+	"strconv"
+	"strings"
+)
 
-  const hasil = [];
 
-  
-  for (let i = 0; i < data.length; i++) {
-    const kendaraan = data[i];
-    
-    if (kendaraan.type !== "Mobil") {
-      continue;
-    }
-
-    
-    let angkaTerakhir;
-    for (let j = kendaraan.plat.length - 1; j >= 0; j--) {
-      if (kendaraan.plat[j] >= '0' && kendaraan.plat[j] <= '9') {
-        angkaTerakhir = parseInt(kendaraan.plat[j], 10);
-        break;
-      }
-    }
-    const platGanjil = angkaTerakhir % 2 !== 0;
-    let pelanggaranN = 0;
-
- 
-    for (let j = 0; j < kendaraan.rute.length; j++) {
-      const rute = kendaraan.rute[j];
-      for (let k = 0; k < ruteGanjilGenap.length; k++) {
-        if (rute === ruteGanjilGenap[k]) {
-          if (tanggalGanjil !== platGanjil) {
-            pelanggaranN++;
-          }
-        }
-      }
-    }
-
-    
-    if (pelanggaranN > 0) {
-      hasil.push({ name: kendaraan.name, tilang: pelanggaranN });
-    }
-  }
-  
-  return hasil;
+type Vehicle struct {
+	Name string
+	Plat string
+	Type string
+	Rute []string
 }
 
-console.log(
-  Razia(27, [
-    {
-      name: "Denver",
-      plat: "B 2791 KDS",
-      type: "Mobil",
-      rute: ["TB Simatupang", "Panglima Polim", "Depok", "Senen Raya"]
-    },
-    {
-      name: "Toni",
-      plat: "B 1212 JBB",
-      type: "Mobil",
-      rute: [
-        "Pintu Besar Selatan",
-        "Panglima Polim",
-        "Depok",
-        "Senen Raya",
-        "Kemang"
-      ]
-    },
-    {
-      name: "Stark",
-      plat: "B 444 XSX",
-      type: "Motor",
-      rute: ["Pondok Indah", "Depok", "Senen Raya", "Kemang"]
-    },
-    {
-      name: "Anna",
-      plat: "B 678 DD",
-      type: "Mobil",
-      rute: [
-        "Fatmawati",
-        "Panglima Polim",
-        "Depok",
-        "Senen Raya",
-        "Kemang",
-        "Gajah Mada"
-      ]
-    }
-  ])
-);
+
+type Violation struct {
+	Name  string
+	Tilang int
+}
+
+
+func PoilisiRaziaAku(date int, data []Vehicle) []Violation {
+	var violations []Violation
+	routes := map[string]bool{
+		"Gajah Mada":       true,
+		"Hayam Wuruk":      true,
+		"Sisingamangaraja": true,
+		"Panglima Polim":   true,
+		"Fatmawati":        true,
+		"Tomang Raya":      true,
+	}
+
+	
+	for _, vehicle := range data {
+		if vehicle.Type != "Mobil" {
+			continue
+		}
+		
+		
+		platNumber := strings.Fields(vehicle.Plat)[1]
+		lastDigit, _ := strconv.Atoi(string(platNumber[len(platNumber)-1]))
+
+		
+		isEvenDate := date%2 == 0
+		isEvenPlat := lastDigit%2 == 0
+
+	
+		violationCount := 0
+		if isEvenDate != isEvenPlat {
+			for _, route := range vehicle.Rute {
+				if _, exists := routes[route]; exists {
+					violationCount++
+				}
+			}
+		}
+
+		
+		if violationCount > 0 {
+			violations = append(violations, Violation{Name: vehicle.Name, Tilang: violationCount})
+		}
+	}
+	return violations
+}
+
+func main() {
+	vehicles := []Vehicle{
+		{
+			Name: "Denver",
+			Plat: "B 2791 KDS",
+			Type: "Mobil",
+			Rute: []string{"TB Simatupang", "Panglima Polim", "Depok", "Senen Raya"},
+		},
+		{
+			Name: "Toni",
+			Plat: "B 1212 JBB",
+			Type: "Mobil",
+			Rute: []string{"Pintu Besar Selatan", "Panglima Polim", "Depok", "Senen Raya", "Kemang"},
+		},
+		{
+			Name: "Stark",
+			Plat: "B 444 XSX",
+			Type: "Motor",
+			Rute: []string{"Pondok Indah", "Depok", "Senen Raya", "Kemang"},
+		},
+		{
+			Name: "Anna",
+			Plat: "B 678 DD",
+			Type: "Mobil",
+			Rute: []string{"Fatmawati", "Panglima Polim", "Depok", "Senen Raya", "Kemang", "Gajah Mada"},
+		},
+	}
+
+	result := PoilisiRaziaAku(27, vehicles)
+	fmt.Println(result) 
+}
